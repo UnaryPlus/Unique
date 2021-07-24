@@ -1,0 +1,17 @@
+cabal-version:      2.4
+name:               unique-lang
+version:            0.1.0.0
+
+author:             UnaryPlus
+maintainer:         ombspring@gmail.com
+
+extra-source-files: CHANGELOG.md
+
+executable unique-lang
+    main-is:          Main.hs
+    other-extensions: LambdaCase
+
+    build-depends:    base, transformers
+
+    hs-source-dirs:   app
+    default-language: Haskell2010
