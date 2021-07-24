@@ -1,5 +1,7 @@
 {-# LANGUAGE LambdaCase #-}
 
+module Unique () where
+
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Except
   (ExceptT, runExceptT, throwE)
@@ -40,7 +42,7 @@ runFile path = safeReadFile path >>= \case
       Right () -> return ()
 
 safeReadFile :: FilePath -> IO (Maybe String)
-safeReadFile =
+safeReadFile path =
   fmap Just (readFile path) `catch`
   \e -> return (const Nothing (e :: IOException))
 
