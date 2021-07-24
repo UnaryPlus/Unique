@@ -1,6 +1,6 @@
 {-# LANGUAGE LambdaCase #-}
 
-module Unique () where
+module Main (main) where
 
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Except
