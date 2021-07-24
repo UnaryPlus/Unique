@@ -1,5 +1,5 @@
 # Unique
-Unique is an esoteric programming language where each number can only appear once.
+Unique is an esoteric programming language where each number can only occur once.
 Every variable in unique is stored in a single data structure, which functions as a stack of stacks.
 You can find a description of how the language works [here](https://owenbechtel.com/unique).
 Clone this repo and run the following commands to check if the interpreter works:
