@@ -8,4 +8,4 @@ ghc -o unique Main.hs
 ./unique examples/hello-world.uniq
 ```
 If you don't have Haskell installed on your computer, you can download the executable file
-directly from my website by clicking the link above.
+from my website by clicking the link above.
