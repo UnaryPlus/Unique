@@ -7,5 +7,3 @@ Clone this repository and run the following commands to test if the interpreter 
 ghc -o unique Main.hs
 ./unique examples/hello-world.uniq
 ```
-If you don't have Haskell installed on your computer, you can download the executable file
-from my website by clicking the link above.
