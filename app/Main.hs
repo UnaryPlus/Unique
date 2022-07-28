@@ -1,4 +1,4 @@
-{- 
+{-
   (c) 2022 Owen Bechtel
   License: MIT (see LICENSE file)
 -}
@@ -8,10 +8,8 @@
 module Main (main) where
 
 import Control.Monad.Trans.Class (lift)
-import Control.Monad.Trans.Except
-  (ExceptT, runExceptT, throwE)
-import Control.Monad.Trans.State
-  (StateT, runStateT, get, gets, put, modify)
+import Control.Monad.Trans.Except (ExceptT, runExceptT, throwE)
+import Control.Monad.Trans.State (StateT, runStateT, get, gets, put, modify)
 
 import Text.Read (readMaybe)
 import Data.List (nub)
