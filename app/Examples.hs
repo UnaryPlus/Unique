@@ -38,17 +38,18 @@ truthMachine = [text|
 
 fibonacci :: Text
 fibonacci = [text|
-  # add 1 and 0 to stack
-  0 2 1 70 -70 + 6
+  # add 1 0 1 to stack
+  0 3 [ 1 50 -50 + 61 60 - ] 6
 
-  # loop forever
-  68 -68 + 55 54 - 57 56 -
-  67 -67 + 7 [
+  51 -51 + 11 [
     # save a copy of the top number
-    84 80 - 3 93 90 -
+    4 73 70 - 74 71 -
 
     # add and print
-    10 4 89 85 - 44
+    10 84 80 - 85 81 - 44
+
+    # stop when numbers get too large
+    52 -52 + 63 62 - 1000000000000000000 26
   ] 34
 
   # create while loop
