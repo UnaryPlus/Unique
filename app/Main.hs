@@ -30,7 +30,7 @@ main = getArgs >>= \case
   _ -> do
     name <- getProgName
     putStrLn "Unique version 0.1.0.0"
-    putStrLn "commands: "
+    putStrLn "Commands: "
     putStrLn ("  " ++ name ++ " run <file>      interpret a Unique file")
     putStrLn ("  " ++ name ++ " examples        create example programs")
 
