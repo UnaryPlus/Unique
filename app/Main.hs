@@ -9,17 +9,15 @@ module Main (main) where
 
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Except (ExceptT, runExceptT, throwE)
-import Control.Monad.Trans.State (StateT, runStateT, get, gets, put, modify)
+import Control.Monad.Trans.State (StateT, runStateT, gets, modify)
 
 import Text.Read (readMaybe)
 import Data.List (nub)
-import Data.Char (ord, chr, isSpace)
-import Data.Maybe (listToMaybe)
+import Data.Char (ord, chr)
 import Data.Function (on)
 import Data.Bifunctor (first, second)
-import Data.Traversable (sequenceA)
 import Control.Applicative (liftA2)
-import Control.Monad (foldM)
+import Control.Monad (foldM, void, when)
 import Control.Exception (IOException, catch)
 import System.Environment (getArgs)
 
@@ -39,8 +37,7 @@ runFile :: FilePath -> IO ()
 runFile path = safeReadFile path >>= \case
   Nothing -> putStrLn ("ERROR: file '" ++ path ++ "' does not exist")
   Just program -> do
-    result <- fromUnique (runProgram program)
-    case result of
+    runUnique (runProgram program) >>= \case
       Left err -> putStrLn ("ERROR: " ++ err)
       Right () -> return ()
 
@@ -88,7 +85,7 @@ execCommand = \case
     putMode LengthMode
 
   --DELETE
-  1 -> pop >> return ()
+  1 -> void pop
 
   --SWAP
   2 -> do
@@ -121,15 +118,14 @@ execCommand = \case
   --UNFOLD
   6 -> do
     xs <- pop
-    mapM_ push (map (:[]) (reverse xs))
+    mapM_ (push . return) (reverse xs)
 
   --IF
   7 -> do
     commands <- pop
     conditions <- pop
-    if all truthy conditions
-      then execCommands commands
-      else return ()
+    when (all truthy conditions)
+      (execCommands commands)
 
   --IF ELSE
   8 -> do
@@ -239,7 +235,6 @@ execCommand = \case
   --OUTPUT CHARACTERS
   43 -> do
     xs <- pop
-    --fromIO (print (map chr xs))
     fromIO (putStr (map chr xs))
 
   --OUTPUT NUMBERS
@@ -308,14 +303,14 @@ apOpM :: (Int -> Int -> Unique Int) -> Unique ()
 apOpM f = do
   xs <- pop
   ys <- pop
-  res <- sequenceA (liftA2 f ys xs)
+  res <- sequence (liftA2 f ys xs)
   push res
 
 zipOpM :: (Int -> Int -> Unique Int) -> Unique ()
 zipOpM f = do
   xs <- pop
   ys <- pop
-  res <- sequenceA (zipWith f ys xs)
+  res <- sequence (zipWith f ys xs)
   push res
 
 boolApOp :: (Int -> Int -> Bool) -> Unique ()
@@ -350,17 +345,15 @@ power x y =
 whileLoop :: [Int] -> Unique ()
 whileLoop commands = do
   conditions <- pop
-  if all truthy conditions
-    then do
-      execCommands commands
-      whileLoop commands
-    else return ()
+  when (all truthy conditions) $ do
+    execCommands commands
+    whileLoop commands
 
 fromIO :: IO a -> Unique a
 fromIO = lift . lift
 
-fromUnique :: Unique a -> IO (Either String a)
-fromUnique u = fmap fst
+runUnique :: Unique a -> IO (Either String a)
+runUnique u = fmap fst
   (runStateT (runExceptT u) ([], CommandMode))
 
 evalProgram :: String -> Unique [Int]
