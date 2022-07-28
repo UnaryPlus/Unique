@@ -24,7 +24,10 @@ executable unique
     default-language: Haskell2010
     ghc-options:      -Wall
     main-is:          Main.hs
+    other-modules:    Examples
 
     build-depends:
       base >= 4.11 && < 5,
-      transformers
+      transformers,
+      text,
+      neat-interpolation

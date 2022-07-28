@@ -19,13 +19,21 @@ import Data.Bifunctor (first, second)
 import Control.Applicative (liftA2)
 import Control.Monad (foldM, void, when)
 import Control.Exception (IOException, catch)
-import System.Environment (getArgs)
+import System.Environment (getArgs, getProgName)
+
+import qualified Examples
 
 main :: IO ()
 main = getArgs >>= \case
-  [] -> putStrLn "ERROR: you must supply a file to run"
-  [path] -> runFile path
-  _ -> putStrLn "ERROR: too many arguments"
+  ["run", path] -> runFile path
+  ["examples"] -> Examples.copy
+  _ -> do
+    name <- getProgName
+    putStrLn "Unique version 0.1.0.0"
+    putStrLn "commands: "
+    putStrLn ("  " ++ name ++ " run <file>      interpret a Unique file")
+    putStrLn ("  " ++ name ++ " examples        create example programs")
+
 
 runFile :: FilePath -> IO ()
 runFile path = safeReadFile path >>= \case
