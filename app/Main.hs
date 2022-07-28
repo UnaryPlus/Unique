@@ -41,15 +41,7 @@ safeReadFile path =
   \e -> return (const Nothing (e :: IOException))
 
 type Stack = [[Int]]
-
-insert :: Int -> Stack -> Stack
-insert num = \case
-  [] -> [[num]]
-  ([] : stack) -> [num] : stack
-  (xs : stack) -> (num : xs) : stack
-
 data Mode = CommandMode | LengthMode | PushMode Int
-
 type Unique = ExceptT String (StateT (Stack, Mode) IO)
 
 runUnique :: Unique a -> IO (Either String a)
@@ -284,6 +276,12 @@ truthy = (/= 0)
 toInt :: Bool -> Int
 toInt False = 0
 toInt True = 1
+
+insert :: Int -> Stack -> Stack
+insert num = \case
+  [] -> [[num]]
+  ([] : stack) -> [num] : stack
+  (xs : stack) -> (num : xs) : stack
 
 pop :: Unique [Int]
 pop = getStack >>= \case
