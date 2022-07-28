@@ -12,9 +12,9 @@ copy = do
   IO.writeFile "truth-machine.uniq" truthMachine
   IO.writeFile "fibonacci.uniq" fibonacci
   IO.writeFile "hello-world.uniq" helloWorld
-  putStrLn "created truth-machine.uniq"
-  putStrLn "created fibonacci.uniq"
-  putStrLn "created hello-world.uniq"
+  putStrLn "Created truth-machine.uniq"
+  putStrLn "Created fibonacci.uniq"
+  putStrLn "Created hello-world.uniq"
 
 truthMachine :: Text
 truthMachine = [text|
