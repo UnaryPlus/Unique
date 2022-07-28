@@ -21,12 +21,6 @@ import Control.Monad (foldM, void, when)
 import Control.Exception (IOException, catch)
 import System.Environment (getArgs)
 
-type Stack = [[Int]]
-data Mode = CommandMode | LengthMode | PushMode Int
-type Unique = ExceptT String (StateT (Stack, Mode) IO)
-
-data Symbol = Lit Int | Add | Subtract | Multiply | Ignore
-
 main :: IO ()
 main = getArgs >>= \case
   [] -> putStrLn "ERROR: you must supply a file to run"
@@ -46,10 +40,48 @@ safeReadFile path =
   fmap Just (readFile path) `catch`
   \e -> return (const Nothing (e :: IOException))
 
+type Stack = [[Int]]
+
+insert :: Int -> Stack -> Stack
+insert num = \case
+  [] -> [[num]]
+  ([] : stack) -> [num] : stack
+  (xs : stack) -> (num : xs) : stack
+
+data Mode = CommandMode | LengthMode | PushMode Int
+
+type Unique = ExceptT String (StateT (Stack, Mode) IO)
+
+runUnique :: Unique a -> IO (Either String a)
+runUnique u = fmap fst
+  (runStateT (runExceptT u) ([], CommandMode))
+
+fromIO :: IO a -> Unique a
+fromIO = lift . lift
+
+getStack :: Unique Stack
+getStack = lift (gets fst)
+
+putStack :: Stack -> Unique ()
+putStack = modifyStack . const
+
+modifyStack :: (Stack -> Stack) -> Unique ()
+modifyStack = lift . modify . first
+
+getMode :: Unique Mode
+getMode = lift (gets snd)
+
+putMode :: Mode -> Unique ()
+putMode = modifyMode . const
+
+modifyMode :: (Mode -> Mode) -> Unique ()
+modifyMode = lift . modify . second
+
 runProgram :: String -> Unique ()
 runProgram program = do
-  commands <- evalProgram (removeComments program)
-  execCommands commands
+  case evalProgram (removeComments program) of
+    Left err -> throwE err
+    Right commands -> execCommands commands
 
 removeComments :: String -> String
 removeComments =
@@ -253,30 +285,6 @@ toInt :: Bool -> Int
 toInt False = 0
 toInt True = 1
 
-getStack :: Unique Stack
-getStack = lift (gets fst)
-
-putStack :: Stack -> Unique ()
-putStack = modifyStack . const
-
-modifyStack :: (Stack -> Stack) -> Unique ()
-modifyStack = lift . modify . first
-
-getMode :: Unique Mode
-getMode = lift (gets snd)
-
-putMode :: Mode -> Unique ()
-putMode = modifyMode . const
-
-modifyMode :: (Mode -> Mode) -> Unique ()
-modifyMode = lift . modify . second
-
-insert :: Int -> Stack -> Stack
-insert num = \case
-  [] -> [[num]]
-  ([] : stack) -> [num] : stack
-  (xs : stack) -> (num : xs) : stack
-
 pop :: Unique [Int]
 pop = getStack >>= \case
   [] -> throwE "no values in stack to pop"
@@ -349,19 +357,14 @@ whileLoop commands = do
     execCommands commands
     whileLoop commands
 
-fromIO :: IO a -> Unique a
-fromIO = lift . lift
+data Symbol = Lit Int | Add | Subtract | Multiply | Ignore
 
-runUnique :: Unique a -> IO (Either String a)
-runUnique u = fmap fst
-  (runStateT (runExceptT u) ([], CommandMode))
-
-evalProgram :: String -> Unique [Int]
+evalProgram :: String -> Either String [Int]
 evalProgram program = do
   symbols <- mapM readSymbol (words program)
   if getNums symbols == nub (getNums symbols)
-  then fmap reverse (foldM execSymbol [] symbols)
-    else throwE "number occurs more than once"
+  then reverse <$> foldM execSymbol [] symbols
+    else Left "number occurs more than once"
 
 getNums :: [Symbol] -> [Int]
 getNums = \case
@@ -369,7 +372,18 @@ getNums = \case
   (Lit x : ss) -> x : getNums ss
   (_ : ss) -> getNums ss
 
-execSymbol :: [Int] -> Symbol -> Unique [Int]
+readSymbol :: String -> Either String Symbol
+readSymbol = \case
+  "+" -> return Add
+  "-" -> return Subtract
+  "*" -> return Multiply
+  "[" -> return Ignore
+  "]" -> return Ignore
+  sym -> case readMaybe sym of
+    Nothing -> Left ("cannot parse symbol '" ++ sym ++ "'")
+    Just x -> return (Lit x)
+
+execSymbol :: [Int] -> Symbol -> Either String [Int]
 execSymbol xs = \case
   Lit x -> return (x : xs)
   Add -> operation (+) "add"
@@ -380,15 +394,4 @@ execSymbol xs = \case
     operation f name =
       case xs of
         (x : y : t) -> return (f y x : t)
-        _ -> throwE ("not enough numbers to " ++ name)
-
-readSymbol :: String -> Unique Symbol
-readSymbol = \case
-  "+" -> return Add
-  "-" -> return Subtract
-  "*" -> return Multiply
-  "[" -> return Ignore
-  "]" -> return Ignore
-  sym -> case readMaybe sym of
-    Nothing -> throwE ("cannot parse symbol '" ++ sym ++ "'")
-    Just x -> return (Lit x)
+        _ -> Left ("not enough numbers to " ++ name)
