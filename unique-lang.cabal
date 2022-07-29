@@ -29,6 +29,6 @@ executable unique
 
     build-depends:
       base >= 4.11 && < 5,
-      transformers,
-      text,
-      neat-interpolation
+      transformers >= 0.4 && < 0.7,
+      text >= 0.7 && < 2.1,
+      neat-interpolation >= 0.1.1 && < 0.6
